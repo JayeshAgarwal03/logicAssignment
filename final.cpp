@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <map>
 #include <set>
+#include <vector>
 using namespace std;
 
 // ==================== TASK 1: Infix to Prefix Converter ====================
@@ -101,11 +102,12 @@ void task1_InfixToPrefix(const string& infix) {
     cout << "Prefix: " << infixtoprefix(infix) << endl;
 }
 
+
 // ========= Task 2 : Converting a prefix expression to a Binary rooted tree =========
 struct Node1 {
     char data;
-    Node1* left;
-    Node1* right;
+    shared_ptr<Node1> left;
+    shared_ptr<Node1> right;
 
 //initialising the Node1
     Node1(char val) {
@@ -121,9 +123,9 @@ bool Valid_Op(char c) {
 }
 
 // function for converting any prefix to binary parse tree
-Node1* Prefix_to_Tree(const string& prefix) {
+shared_ptr<Node1> Prefix_to_Tree(const string& prefix) {
     cout << "\n========== TASK 2: Converting a prefix expression to a Binary rooted tree ==========\n";
-    stack<Node1*> store;
+    stack<shared_ptr<Node1>> store;
 
     for (int i = prefix.length() - 1; i >= 0; i--) {
         char c = prefix[i];
@@ -133,7 +135,7 @@ Node1* Prefix_to_Tree(const string& prefix) {
 
         //this is to deal with all the operands
         if (!Valid_Op(c)) {
-            store.push(new Node1(c));
+            store.push(make_shared<Node1>(c));
         } 
         // this treats the unary operator different from the others as unary deals with a single operand
         else if (c == '~') { 
@@ -143,8 +145,8 @@ Node1* Prefix_to_Tree(const string& prefix) {
             }
 
         //this is the code for the rest of operators    
-            Node1* operand = store.top(); store.pop();
-            Node1* node1 = new Node1(c);
+            shared_ptr<Node1> operand = store.top(); store.pop();
+            shared_ptr<Node1> node1 = make_shared<Node1>(c);
             node1->left = operand;
             node1->right = nullptr;
             store.push(node1);
@@ -157,11 +159,11 @@ Node1* Prefix_to_Tree(const string& prefix) {
             }
            
             // This ensures that the first popped node1 is the left one to maintain the order of the infix expression
-            Node1* left = store.top(); store.pop();
+            shared_ptr<Node1> left = store.top(); store.pop();
             // This ensures that the first popped node1 is the right one to maintain the order of the infix expression
-            Node1* right = store.top(); store.pop();
+            shared_ptr<Node1> right = store.top(); store.pop();
             
-            Node1* node1 = new Node1(c);
+            shared_ptr<Node1> node1 = make_shared<Node1>(c);
             node1->left = left;
             node1->right = right;
             store.push(node1);
@@ -182,7 +184,8 @@ Node1* Prefix_to_Tree(const string& prefix) {
 
 //Inorder traversal of the tree to output the infix expression
 
-void Tree_to_Infix(Node1* root) {
+void Tree_to_Infix(shared_ptr<Node1> root) {
+    
     //to deal with a null expression
     if (!root) return;
 
@@ -211,6 +214,7 @@ void Tree_to_Infix(Node1* root) {
         cout << root->data;
     }
 }
+
 
 // ==================== TASK 4: Expression Tree Height ====================
 
@@ -827,7 +831,7 @@ int main() {
     task1_InfixToPrefix("q*b+(c>d)");
 
     // Task 2: Converting a prefix expression to a Binary rooted tree
-    Node1* root = Prefix_to_Tree(prefix_formula);
+    shared_ptr<Node1> root = Prefix_to_Tree(prefix_formula);
     cout << "Prefix : " << prefix_formula << endl;
 
     // Task 3: Converting a prefix expression to a Binary rooted tree
@@ -837,7 +841,7 @@ int main() {
         Tree_to_Infix(root);
         cout << endl;
     }
-
+    
     // Task 4: Expression Tree Height
     task4_ExpressionTreeHeight("(A*B)+(~C*D)");
 
