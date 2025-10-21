@@ -11,14 +11,19 @@
 using namespace std;
 
 // ==================== TASK 1: Infix to Prefix Converter ====================
+// Function to assign a priority level to an operator.
+
 int priorityofoperator(char c){
-    if (c== '(') return 0; 
-    else if( c=='~') return 1;
-    else if( c=='*') return 2;
-    else if( c=='+') return 3;
-    else if (c=='>') return 4;
+    
+    if (c == '(') return 0; 
+    else if( c == '~') return 1; 
+    else if( c == '*') return 2;
+    else if( c == '+') return 3;
+    else if (c == '>') return 4;
     return -1;
 }
+
+// Function to swap '(' and ')' characters in a string.
 
 void bracketswap(string &s){
     for (int i = 0; i < s.length(); i++){
@@ -27,29 +32,43 @@ void bracketswap(string &s){
     }
 }
 
-string postfix(string &s) {
+string postfix(string &s) { 
     stack<char> st;
     string output = "";
     for (int i = 0; i < s.length(); i++) {
         char c = s[i];
+        
+        //  if character is an operand (letter or digit), add it directly to the output.
         if (isalpha(c) || isdigit(c)) { 
             output += c;
-        } else if (c == '(') {
+        } 
+        //  if character is an opening bracket ,we  push it onto the stack.
+        else if (c == '(') {
             st.push(c);
-        } else if (c == ')') {
+        } 
+         // If character is a closing parenthesis.
+        else if (c == ')') {
+            // Pop operators from the stack and add to output until '(' is encountered.
             while (!st.empty() && st.top() != '(') {
                 output += st.top();
                 st.pop();
             }
-            if (!st.empty()) st.pop(); // pop '('
-        } else { // operator
+            // Pop the '(' from the stack (don't add it to output).
+            if (!st.empty()) st.pop(); 
+        } 
+        // If character is an operator.
+        // pop stack while top operator has lower or equal precedence.
+        else { 
+            
             while (!st.empty() && priorityofoperator(st.top()) <= priorityofoperator(c) && st.top() != '(') {
                 output += st.top();
                 st.pop();
             }
+            // Push the current operator onto the stack.
             st.push(c);
         }
     }
+    // to pop the remaining operators 
     while (!st.empty()) {
         output += st.top();
         st.pop();
@@ -57,14 +76,25 @@ string postfix(string &s) {
     return output;
 }
 
+
+// Algorithm: Reverse the infix string-> Swap all '(' with ')' and vice-versa.
+// -> Apply the standard Infix-to-Postfix conversion 
+//  Reverse the resulting string to get the final Prefix expression.
 string infixtoprefix(string s){
-    bracketswap(s);
-    reverse(s.begin(), s.end());
+    reverse(s.begin(), s.end()); 
+    bracketswap(s); 
+    
+    
+    
+    //Converts the modified string to a postfix form.
     string k = postfix(s);
+    
+    // reversal of k will yield prefix form 
     reverse(k.begin(), k.end());
     return k;
 }
 
+// Utility function to demonstrate the conversion.
 void task1_InfixToPrefix(const string& infix) {
     cout << "\n========== TASK 1: Infix to Prefix Converter ==========\n";
     cout << "Infix:  " << infix << endl;
@@ -190,6 +220,8 @@ struct TreeNode {
     TreeNode(char v) : value(v), left(nullptr), right(nullptr) {}
 };
 
+// Prints the tree structure in a visual hierarchical format with connecting lines.
+// Right children are printed first (top), then left children (bottom).
 void printTree(shared_ptr<TreeNode> node, string indent = "", bool isRight = true) {
     if (node == nullptr) return;
     
@@ -216,12 +248,13 @@ int getPrecedence(char op) {
     return 0;
 }
 
+// for edgecase ~~ A is evaluated as ~(~A), not (~~)A.
 bool isRightAssociative(char op) {
     return op == '~';  // only NOT is right-associative
 }
 
 
-// function to build a parse tree from infix notation.
+// function to build a parse tree from infix notation using the Shunting Yard algorithm.
 shared_ptr<TreeNode> buildTree(string infix) {
     stack<shared_ptr<TreeNode>> nodes;
     stack<char> ops;
@@ -229,23 +262,31 @@ shared_ptr<TreeNode> buildTree(string infix) {
     for (int i = 0; i < infix.length(); i++) {
         char c = infix[i];
         
+        // Skip whitespace
         if (c == ' ') continue;
         
+        // If variable, create a node and push to nodes stack
         if (isalpha(c)) {
             nodes.push(make_shared<TreeNode>(c));
         }
+
+        // opening bracket: Push to operator stack
         else if (c == '(') {
             ops.push(c);
         }
+
+        // Closing bracket: pop and build tree nodes until matching '(' is found
         else if (c == ')') {
             while (!ops.empty() && ops.top() != '(') {
                 auto node = make_shared<TreeNode>(ops.top());
                 ops.pop();
                 
+                // Unary operator (negation): only has right child
                 if (node->value == '~') {
-                    node->left = nodes.top();
+                    node->right = nodes.top();
                     nodes.pop();
                 } else {
+                    // Binary operator: pop two operands (right first, then left)
                     node->right = nodes.top();
                     nodes.pop();
                     node->left = nodes.top();
@@ -253,8 +294,9 @@ shared_ptr<TreeNode> buildTree(string infix) {
                 }
                 nodes.push(node);
             }
-            ops.pop(); // remove '('
+            ops.pop(); // remove '(' from ops
         }
+        // Takes care of precedence and associativity rules
         else if (c == '~' || c == '+' || c == '*' || c == '>') {
             // Process operators with higher or equal precedence
             while (!ops.empty() && ops.top() != '(' &&
@@ -265,7 +307,7 @@ shared_ptr<TreeNode> buildTree(string infix) {
                 ops.pop();
                 
                 if (node->value == '~') {
-                    node->left = nodes.top();
+                    node->right = nodes.top();
                     nodes.pop();
                 } else {
                     node->right = nodes.top();
@@ -285,7 +327,7 @@ shared_ptr<TreeNode> buildTree(string infix) {
         ops.pop();
         
         if (node->value == '~') {
-            node->left = nodes.top();
+            node->right = nodes.top();
             nodes.pop();
         } else {
             node->right = nodes.top();
@@ -299,11 +341,13 @@ shared_ptr<TreeNode> buildTree(string infix) {
     return nodes.top();
 }
 
+// Calculates the height of the tree recursively.
 int calculateHeight(shared_ptr<TreeNode> root) {
     if (!root) return 0;
     return 1 + max(calculateHeight(root->left), calculateHeight(root->right));
 }
 
+// The main controller function.
 void task4_ExpressionTreeHeight(const string& infix) {
     cout << "\n========== TASK 4: Expression Tree Height ==========\n";
     cout << "Infix expression: " << infix << endl;
@@ -708,6 +752,10 @@ void task6_CNFConverter(const string& prefix_formula, const string& infix_formul
 }
 
 // ==================== TASK 7: CNF Clause Validator ====================
+
+// A clause is satisfiable if it contains at least one pair of complementary literals (e.g., x and ~x).
+// Returns true if the clause contains both a literal and its negation (making the clause always true).
+// Returns false if no complementary pair is found (clause may be false under some assignment).
 bool isClauseValid(const string& clause_line) {
     stringstream ss(clause_line);
     unordered_set<int> literals;
@@ -721,28 +769,45 @@ bool isClauseValid(const string& clause_line) {
     return false;
 }
 
+// The main controller function.
 void task7_CNF_Validator(const string& filepath) {
     cout << "\n========== TASK 7: CNF Clause Validator ==========\n";
     
+    // This function reads the .cnf file
     ifstream file(filepath);
     if (!file.is_open()) {
         cout << "Error: Could not open file " << filepath << endl;
         return;
     }
     
+    // Initialize the variables that count the number of valid and invalid clauses.
     string line;
     int valid_clauses = 0;
     int invalid_clauses = 0;
     
+    // Loop through each line in the file.
     while (getline(file, line)) {
+
+        // Ignore lines starting from 'c' or 'p'.
         if (line.empty() || line[0] == 'c' || line[0] == 'p') {
             continue;
         }
+
+        // Check if each clause is valid or not and count the number of valid and invalid clauses.
         if (isClauseValid(line)) {
             valid_clauses++;
         } else {
             invalid_clauses++;
         }
+    }
+    
+    // Check if all clauses are valid (CNF formula is valid)
+    if (invalid_clauses == 0 && valid_clauses > 0) {
+        cout << "\nCNF Formula: VALID (All clauses are satisfiable)" << endl;
+    } else if (valid_clauses == 0 && invalid_clauses == 0) {
+        cout << "\nCNF Formula: No clauses found" << endl;
+    } else {
+        cout << "\nCNF Formula: INVALID (Contains unsatisfiable clauses)" << endl;
     }
     
     file.close();
