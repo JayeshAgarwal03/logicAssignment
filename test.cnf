@@ -1,0 +1,12 @@
+c Command line: /users/iasi/simon/Recherche/SAT2002/Generator-Submission/hirsch/hgen4/hgen4 150 1751886943
+c Original file name: /tmp/unigen-6123-output/hgen-sat-uniform-asymm-nopairs_4-CNF-0_v150_c1350_s1751886943.cnf
+p cnf 150 9
+-19 -150 43 -43 0
+53 4 -108 -68 0
+-133 108 36 27 0
+77 -119 103 -10 0
+118 112 139 3 0
+74 72 57 -6 0
+-7 -33 7 90 0
+131 124 -62 -146 0
+12 -103 -134 100 0
